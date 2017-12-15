@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <dimen name="textSize">18sp</dimen>
+    <dimen name="emptyTextSize">20sp</dimen>
+    <dimen name="titleTextSize">18sp</dimen>
+    <dimen name="descTextSize">14sp</dimen>
+</resources>

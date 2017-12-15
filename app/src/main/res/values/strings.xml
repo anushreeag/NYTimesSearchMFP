@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">NYTimes</string>
+    <string name="search">Search</string>
+    <string name="begin_date">Begin Date</string>
+    <string name="enterDate">Enter the begin date</string>
+    <string name="sort_order">Sort Order</string>
+    <string name="old">Oldest</string>
+    <string name="newest">Newest</string>
+    <string name="news_desk">News Desk Values</string>
+    <string name="arts">Arts</string>
+    <string name="sports">Sports</string>
+    <string name="fashion">Fashion and Style</string>
+    <string name="business">Business</string>
+    <string name="weekend">Weekend</string>
+    <string name="save">SAVE</string>
+    <string name="filter">Filter</string>
+    <string name="chooseView">Choose View</string>
+    <string name="search_hint">Type here</string>
+    <string name="no_data_available">"Use 🔍 for searching New York Times ! \nIf internet/Wifi is off, browsing is not possible"</string>
+</resources>
