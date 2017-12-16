@@ -13,6 +13,7 @@ Search displays a grid of image results from the New York Times Search API. - Sh
 
 The following **optional** features are implemented:
 * [x] API Query is done using RetroFit networking library.
+* [x] If Thumbnail is not there for an article, thumbnail is not shown
 * [x] User can click on "Filter" which allows selection of **advanced search options** to filter results
 * [x] User can configure advanced search filters such as:
   * [x] Begin Date (uses a date picker)
@@ -30,3 +31,6 @@ The following **optional** features are implemented:
 * [x] If no result found, displaying the message "No results found"
 * [x] Search is based on network on or off. Search menu is disabled if network/wifi is off
 * [x] Categories, Description are shown for every news. Different colors for different categories
+
+
+Video Walkthrough of App : Link : [https://i.imgur.com/ksxbVwO.gif]
