@@ -4,27 +4,19 @@ import android.animation.LayoutTransition;
 import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.mfp.nytsearchmfp.R;
-import com.mfp.nytsearchmfp.activity.NYTSearchActivity;
-import com.mfp.nytsearchmfp.databinding.ItemListBinding;
-import com.mfp.nytsearchmfp.databinding.ItemListImageBinding;
 import com.mfp.nytsearchmfp.databinding.ItemRecycleviewBinding;
 import com.mfp.nytsearchmfp.databinding.ItemRecycleviewImageBinding;
 import com.mfp.nytsearchmfp.model.Article;
 import java.util.ArrayList;
-import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 
 /**
  * Created by anushree on 9/19/2017.
@@ -123,6 +115,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             title.setText(article.getTitle());
             desc.setText(article.getSnippet());
             if(!article.getNew_desk().isEmpty() && !(article.getNew_desk().equalsIgnoreCase("NONE"))) {
+
                 label.setVisibility(View.VISIBLE);
                 label.setText(article.getNew_desk().toUpperCase());
                 if (article.getNew_desk().toUpperCase().contains("ARTS"))
@@ -173,6 +166,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     label.setBackgroundColor(ctx.getResources().getColor(R.color.orange));
                 else if (article.getNew_desk().toUpperCase().contains("FASHION & STYLE"))
                     label.setBackgroundColor(ctx.getResources().getColor(R.color.brown));
+                else if (article.getNew_desk().toUpperCase().contains("BUSINESS"))
+                    label.setBackgroundColor(ctx.getResources().getColor(R.color.green));
+                else if (article.getNew_desk().toUpperCase().contains("WEEKEND"))
+                    label.setBackgroundColor(ctx.getResources().getColor(R.color.lightPurple));
                 else label.setBackgroundColor(ctx.getResources().getColor(R.color.red));
             }
             else{
@@ -185,6 +182,11 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
+
+    public void clear(){
+        mList.clear();
+        notifyDataSetChanged();
+    }
 
 
 

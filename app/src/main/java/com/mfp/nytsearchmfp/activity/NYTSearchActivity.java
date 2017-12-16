@@ -82,7 +82,6 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
     FragmentManager fm;
     StaggeredGridLayoutManager gridLayoutManager;
     LinearLayoutManager listLayoutManager;
-    RequestParams params;
     Toolbar toolbar;
     Context mCtx;
     private NetworkStateReceiver networkStateReceiver;
@@ -100,6 +99,8 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
 
         networkStateReceiver = new NetworkStateReceiver();
         networkStateReceiver.addListener(this);
+
+        // Register to get notified on network changes
         this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
         setUpViews();
         setUpToolbar();
@@ -141,54 +142,23 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
         ItemClickSupport.addTo(nyGrid).setOnItemClickListener(
                 (recyclerView, position, v) -> {
                     Article article = articleList.get(position);
-                    Toast.makeText(mCtx,"Loading the webpage. Please wait..",Toast.LENGTH_SHORT).show();
-                        /*
-                            WebView Implementation begins
-                         */
+                    Toast.makeText(mCtx,mCtx.getResources().getString(R.string.loading_webpage),Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent();
                     intent.setClass(mCtx,WebViewActivity.class);
                     intent.putExtra(WEB_URL,article.getWeb_url());
                     startActivity(intent);
-                        /*
-                            WebView Implementation end
-                         */
-                       /*
-                        *Chrome custom tab implementation begins
-                        */
-                       /* Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.action_share);
-                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                        shareIntent.setType("text/plain");
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, article.getWeb_url());
-                        int requestCode = 100;
-
-                        PendingIntent pendingIntent = PendingIntent.getActivity(mCtx,
-                                requestCode,
-                                shareIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
-                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                        builder.setToolbarColor(ContextCompat.getColor(mCtx, R.color.colorAccent));
-                        builder.setActionButton(bitmap, "Share this Link", pendingIntent, true);
-                        // set toolbar color and/or setting custom actions before invoking build()
-                        // Once ready, call CustomTabsIntent.Builder.build() to create a CustomTabsIntent
-                        CustomTabsIntent customTabsIntent = builder.build();
-                        // and launch the desired Url with CustomTabsIntent.launchUrl()
-                        customTabsIntent.launchUrl(mCtx, Uri.parse(article.getWeb_url()));*/
-
-
                 }
         );
 
         scrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                Log.i(TAG,"Total Items ="+totalItemsCount);
-                Log.i(TAG,"page ="+page);
-
+                //Log.i(TAG,"Total Items ="+totalItemsCount);
+                //Log.i(TAG,"page ="+page);
                 loadNextDataFromApi(page);
             }
         };
         nyGrid.addOnScrollListener(scrollListener);
-
         VerticalSpaceItemDecoration divider = new VerticalSpaceItemDecoration(5);
         nyGrid.addItemDecoration(divider);
         nyGrid.setItemAnimator(new SlideInUpAnimator());
@@ -258,6 +228,7 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
         super.onDestroy();
         fillPreferencesFromBundle();
         networkStateReceiver.removeListener(this);
+        // UnRegister not to get notified on network changes
         this.unregisterReceiver(networkStateReceiver);
     }
 
@@ -275,21 +246,17 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
                 Log.i(TAG,"Retrofit response code  : "+statusCode);
                 if(response.isSuccessful()){
                     ArticleModel myResponse = response.body();
-                    Log.i(TAG,"Retrofit success : "+myResponse.toString());
+                    //Log.i(TAG,"Retrofit success : "+myResponse.toString());
 
                     int cursize = articleList.size();
                     ArrayList<Article> moreArticles = Article.getArticleList(myResponse.getResponse().getDocs());
                     articleList.addAll(moreArticles);
                     adp.notifyItemRangeInserted(cursize, articleList.size()-1);
-                    Log.i(TAG, articleList.toString());
                 }
             }
 
             @Override
             public void onFailure(Call<ArticleModel> call, Throwable t) {
-                Log.i(TAG,t.toString());
-
-                Log.i(TAG, "Search Failed");
                 Log.i(TAG,""+t.toString());
                 runOnUiThread(new Runnable() {
                     @Override
@@ -332,12 +299,6 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
             }
         });
 
-        MenuItem chooseView = menu.findItem(R.id.chooseView);
-        if(isList)
-            chooseView.setIcon(R.drawable.grid);
-        else
-            chooseView.setIcon(R.drawable.list);
-
         return super.onCreateOptionsMenu(menu);
 
     }
@@ -350,25 +311,17 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
             filterFrag.setArguments(data);
             filterFrag.show(fm, "filter");
         }
-        else if(item.getItemId()==R.id.chooseView) {
-            item.setIcon(isList ? R.drawable.list : R.drawable.grid);
-            //nyGrid.setLayoutManager(isList ? gridLayoutManager : listLayoutManager);
-            //nyGrid.setAdapter(adp);
-            isList = !isList;
-
-        }
         return true;
     }
 
     public void searchArticle(String query) {
         paramsMap = new HashMap<>();
-        params = new RequestParams();
         if (!query.isEmpty()) {
             progress.setMessage("Searching in progress.Please wait...");
             progress.show();
             int curSize = articleList.size();
             articleList.clear();
-            adp.notifyItemRangeRemoved(0, curSize);
+            adp.notifyDataSetChanged();
             scrollListener.resetState();
             String date = data.getString(BEGIN_DATE, "");
             Boolean arts = data.getBoolean(ARTS, false);
@@ -379,25 +332,34 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
 
 
             ApiService service = RetroClient.getApiService();
-            params.put("q",query);
-            params.put("api_key",API_KEY);
+            // Filling Params Map with right values
+
+            // Fill the api key
+            paramsMap.put("api_key",API_KEY);
+            // Fill the query
+            paramsMap.put("q",query);
+            if (arts || sports || fashion || weekend || business) {
+                // Fill the advanced Filter Search Category
+                paramsMap.put("fq", getnews_desk(arts, sports, fashion, weekend,business));
+            }
             if (!(date.isEmpty())) {
                 StringBuilder datestr = new StringBuilder();
+                // Fill the advanced Filter Search Begin date
                 datestr.append(date.split("/")[2]).append(date.split("/")[0]).append(date.split("/")[1]);
                 paramsMap.put("begin_date", datestr.toString());
             }
-
             int sort_order = data.getInt(SORT_ORDER, 1);
+            // Fill the advanced Filter Search Sort order : By default it is Newest
             if (sort_order == 1)
                 paramsMap.put("sort", "newest");
             else
                 paramsMap.put("sort", "oldest");
 
-            if (arts || sports || fashion || weekend || business) {
-                paramsMap.put("fq", getnews_desk(arts, sports, fashion, weekend,business));
-            }
+            paramsMap.put("page", 1);
 
             Call<ArticleModel> call = service.getMyJSON(paramsMap);
+
+            // Make the api call
             call.enqueue(new Callback<ArticleModel>() {
                 @Override
                 public void onResponse(Call<ArticleModel> call, Response<ArticleModel> response) {
@@ -406,8 +368,8 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
                     if(response.isSuccessful()){
                         ArticleModel myResponse = response.body();
                         Log.i(TAG,"Retrofit success : "+myResponse.toString());
-                        articleList.addAll(Article.getArticleList(myResponse.getResponse().getDocs()));
-                        adp.notifyItemRangeInserted(0, articleList.size());
+
+
                         Log.i(TAG, articleList.toString());
 
 
@@ -415,6 +377,11 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
                             @Override
                             public void run() {
                                 progress.dismiss();
+                                articleList.clear();
+                                adp.clear();
+                                articleList.addAll(Article.getArticleList(myResponse.getResponse().getDocs()));
+                                adp.notifyItemRangeInserted(0, articleList.size());
+
                                 if(refresh.isRefreshing())
                                     refresh.setRefreshing(false);
                                 if(articleList.size()==0){
@@ -424,9 +391,10 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
                                     empty.setText("No results found !! \uD83D\uDE1E  \uD83D\uDE1E");
                                 }
                                 else{
-                                    nyGrid.setVisibility(View.VISIBLE);
-                                    refresh.setVisibility(View.VISIBLE);
                                     empty.setVisibility(View.GONE);
+                                    nyGrid.setVisibility(View.VISIBLE);
+                                    nyGrid.smoothScrollToPosition(0);
+                                    refresh.setVisibility(View.VISIBLE);
                                     Toast.makeText(mCtx, "Search Success", Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -504,12 +472,15 @@ public class NYTSearchActivity extends AppCompatActivity implements NetworkState
     }
 
 
+    // Call back if network becomes available
     @Override
     public void networkAvailable() {
         Log.i(TAG,"Network is on");
         invalidateOptionsMenu();
     }
 
+
+    // Call back if network becomes unavailable
     @Override
     public void networkUnavailable() {
         Log.i(TAG,"Network is off");

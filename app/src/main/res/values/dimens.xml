@@ -6,4 +6,8 @@
     <dimen name="emptyTextSize">20sp</dimen>
     <dimen name="titleTextSize">18sp</dimen>
     <dimen name="descTextSize">14sp</dimen>
+
+    <dimen name="margin">10dp</dimen>
+    <dimen name="marginSmall">5dp</dimen>
+    <dimen name="appBarHt">50dp</dimen>
 </resources>

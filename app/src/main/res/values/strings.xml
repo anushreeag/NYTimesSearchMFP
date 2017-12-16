@@ -13,8 +13,8 @@
     <string name="business">Business</string>
     <string name="weekend">Weekend</string>
     <string name="save">SAVE</string>
-    <string name="filter">Filter</string>
-    <string name="chooseView">Choose View</string>
+    <string name="filter">Advanced Search</string>
     <string name="search_hint">Type here</string>
+    <string name="loading_webpage">Loading the webpage. Please wait..</string>
     <string name="no_data_available">"Use 🔍 for searching New York Times ! \nIf internet/Wifi is off, browsing is not possible"</string>
 </resources>
